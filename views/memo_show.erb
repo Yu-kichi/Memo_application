@@ -1,13 +1,10 @@
-<body>
-  <div class = "text-center m-4">
-  <%= @k%>
-    <h1 class= "m-4"><%= @data["title"]%></h1>
-    <h2 class = "m-4">内容: <%=@data["body"]%></h2>
-    <h2 class = "m-4">作成日時: <%=@data["date"]%></h2>
-    <p><a class = "btn btn-primary m-4 px-1" href="/edit/<%= @id%>">メモを変更する</a> </p>
-    <form action="/memo/delete/<%=@id %>" method="post" >
-      <input type="hidden" name="_method" value="delete">
-      <input class=  "btn btn-danger px-4" type="submit" value = 削除する> 
-    </form>
-  </div>
-</body>
+<div class = "text-center m-4">
+  <h1 class= "m-4"><%= @data["title"]%></h1>
+  <h2 class = "m-4">内容: <%=@data["body"]%></h2>
+  <h2 class = "m-4">作成日時: <%=@data["date"]%></h2>
+  <p><a class = "btn btn-primary m-4 px-1" href="/edit/<%= @id%>">メモを変更する</a> </p>
+  <form action="/memo/delete/<%=@id %>" method="post" >
+    <input type="hidden" name="_method" value="delete">
+    <input class=  "btn btn-danger px-4" type="submit" value = 削除する> 
+  </form>
+</div>

@@ -1,29 +1,27 @@
-<body>
-  <div class = "text-center">
+<div class = "text-center">
   <h1 class = "mt-4" >メモアプリ</h1>
-    <div class ="mt-4">
-      <a class = "btn btn-primary m-4 " href="/new"><i class="fas fa-pen"></i>新規MEMO作成</a>
-    </div>
-    <table class="table table-striped　table-borderless">
-      <thead>
-        <tr>
-          <th>タイトル</th>
-          <th>内容</th>
-          <th>作成日</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @json_data["memo"].each do |data| %>
-        <% data.each do |key,value|%>
-        <tr>
-          <td><a href="/show/<%= key %>"><%= value["title"] %></a></td>
-          <td><%= value["body"]%></td>
-          <td><%= value["date"]%></td>
-          <br>
-        </tr>  
-        <% end %>
-        <% end %>
-      </tbody>
-    </table>
+  <div class ="mt-4">
+    <a class = "btn btn-primary m-4 " href="/new"><i class="fas fa-pen"></i>新規MEMO作成</a>
   </div>
-</body>
+  <table class="table table-striped　table-borderless">
+  <thead>
+    <tr>
+      <th>タイトル</th>
+      <th>内容</th>
+      <th>作成日</th>
+    </tr>
+  </thead>
+    <tbody>
+      <% @json_data["memo"].each do |data| %>
+      <% data.each do |key,value|%>
+      <tr>
+        <td><a href="/show/<%= key %>"><%= value["title"] %></a></td>
+        <td><%= value["body"]%></td>
+        <td><%= value["date"]%></td>
+        <br>
+      </tr>  
+      <% end %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
