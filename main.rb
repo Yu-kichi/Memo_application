@@ -22,17 +22,21 @@ class MemoFile
 end
 
 get '/' do
+  redirect '/memos'
+end
+
+get '/memos' do
   @title = 'トップページ'
   @date = Date.today
   @json_data = MemoFile.open_json
   erb :index
 end
 
-get '/new' do
+get '/memos/new' do
   erb :memo_new
 end
 
-get '/show/:id' do |id|
+get '/memos/:id' do |id|
   @id = id
   json_data = MemoFile.open_json
 
@@ -43,7 +47,7 @@ get '/show/:id' do |id|
   erb :memo_show
 end
 
-post '/create' do
+post '/memos' do
   @title = params[:title]
   @body = params[:body]
   @date = Date.today
@@ -54,10 +58,10 @@ post '/create' do
   json_data['memo'].push(add_data)
 
   MemoFile.save_json(json_data)
-  redirect '/'
+  redirect '/memos'
 end
 
-get '/edit/:id' do |id|
+get '/memos/:id/edit' do |id|
   @id = id
   @json_data = MemoFile.open_json
 
@@ -90,10 +94,10 @@ patch '/edit/:id' do |id|
 
   MemoFile.save_json(json_data)
 
-  redirect '/'
+  redirect '/memos'
 end
 
-delete '/memo/delete/:id' do |id|
+delete '/memos/:id' do |id|
   @id = id
   json_data = MemoFile.open_json
 
@@ -103,5 +107,5 @@ delete '/memo/delete/:id' do |id|
 
   MemoFile.save_json(json_data)
 
-  redirect '/'
+  redirect '/memos'
 end
