@@ -72,9 +72,7 @@ get '/memos/:id/edit' do |id|
   erb :memo_edit
 end
 
-enable :method_override
-
-patch '/edit/:id' do |id|
+patch '/memos/:id' do |id|
   @id = id
   @title = params[:title]
   @message = params[:message]
