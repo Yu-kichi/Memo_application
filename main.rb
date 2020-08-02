@@ -1,108 +1,103 @@
 # frozen_string_literal: true
 
-require 'sinatra'
-require 'sinatra/reloader'
-require 'json'
-require 'securerandom'
-
+require "sinatra"
+require "sinatra/reloader"
+require "pg"
 # ファイルの読み込みと書き込み
-class MemoFile
-  def self.open_json
-    open('views/sample.json') do |io|
-      JSON.load(io)
+class MemoDatebase
+  def self.open
+    settings = { dbname: "memo2" }
+    conn = PG.connect(settings)
+    yield conn
+    rescue PG::Error => e
+      puts e.message
+  ensure
+    conn.close if conn
+  end
+end
+
+class MemoDbQuery
+  def self.find_all
+    MemoDatebase.open do |conn|
+      conn.exec("SELECT * FROM Memo ORDER BY updated_at DESC")
     end
   end
 
-  def self.save_json(json_data)
-    open('views/sample.json', 'w') do |io|
-      JSON.dump(json_data, io)
+  def self.find_id(id)
+    MemoDatebase.open do |conn|
+      conn.prepare("find", "SELECT * FROM memo WHERE memo_id=$1;")
+      conn.exec_prepared("find", [id])
+    end
+  end
+
+  def self.create(title, body, time)
+    MemoDatebase.open do |conn|
+      conn.prepare("new", "INSERT INTO Memo (memo_id,memo_title,memo_body,created_at,updated_at)values (DEFAULT, $1, $2,$3, $4)")
+      conn.exec_prepared("new", [ title, body, time, time])
+    end
+  end
+
+  def self.edit(title, body, time, id)
+    MemoDatebase.open do |conn|
+      conn.prepare("update", "UPDATE Memo SET memo_title = $1, memo_body = $2, updated_at = $3 WHERE memo_id = $4;")
+      conn.exec_prepared("update", [title, body, time, id])
+    end
+  end
+
+  def self.delete(id)
+    MemoDatebase.open do |conn|
+      conn.prepare("delete", "DELETE FROM memo WHERE memo_id = $1;")
+      conn.exec_prepared("delete", [id])
     end
   end
 end
 
-get '/' do
-  redirect '/memos'
+helpers do
+  def convert_to_br(body)
+    body.gsub(/\r/, "<br>")
+  end
 end
 
-get '/memos' do
-  @title = 'トップページ'
-  @date = Date.today
-  @json_data = MemoFile.open_json
+get "/" do
+  redirect "/memos"
+end
+
+get "/memos" do
+  @results= MemoDbQuery.find_all
   erb :index
 end
 
-get '/memos/new' do
+get "/memos/new" do
   erb :memo_new
 end
 
-get '/memos/:id' do |id|
+get "/memos/:id" do |id|
   @id = id
-  json_data = MemoFile.open_json
-
-  json_data['memo'].each do |key|
-    @data ||= key[@id]
-  end
-
+  @result= MemoDbQuery.find_id(@id)
   erb :memo_show
 end
 
-post '/memos' do
-  @title = params[:title]
-  @body = params[:body]
-  @date = Date.today
-  json_data = MemoFile.open_json
-  id = SecureRandom.uuid
-
-  add_data = { id => { title: @title, body: @body, date: @date } }
-  json_data['memo'].push(add_data)
-
-  MemoFile.save_json(json_data)
-  redirect '/memos'
+post "/memos" do
+  time = Time.now
+  MemoDbQuery.create(params[:title], params[:body], time)
+  redirect "/memos"
 end
 
-get '/memos/:id/edit' do |id|
+get "/memos/:id/edit" do |id|
   @id = id
-  @json_data = MemoFile.open_json
-
-  @json_data['memo'].each do |key|
-    @js ||= key[@id]
-  end
-
+  @result= MemoDbQuery.find_id(@id)
   erb :memo_edit
 end
 
-patch '/memos/:id' do |id|
+patch "/memos/:id" do |id|
   @id = id
-  @title = params[:title]
-  @message = params[:message]
-  @date = Date.today
-  json_data = MemoFile.open_json
-  edit_data = { @id => { title: @title, body: @message, date: @date } }
-
-  json_data['memo'].each do |data|
-    data.each do |key, _value| # ここのvalueはないとエラーになる
-      next unless key == @id.to_s
-
-      data.merge!(edit_data) do |_key, _old_value, new_value|
-        new_value
-      end
-    end
-  end
-
-  MemoFile.save_json(json_data)
-
-  redirect '/memos'
+  time = Time.now
+  MemoDbQuery.edit(params[:title], params[:body], time, @id)
+  redirect "/memos"
 end
 
-delete '/memos/:id' do |id|
+delete "/memos/:id" do |id|
   @id = id
-  json_data = MemoFile.open_json
-
-  json_data['memo'] = json_data['memo'].each do |n|
-    n.delete_if { |key| key == @id }
-  end
-
-  MemoFile.save_json(json_data)
-
-  redirect '/memos'
+  MemoDbQuery.delete(@id)
+  redirect "/memos"
 end

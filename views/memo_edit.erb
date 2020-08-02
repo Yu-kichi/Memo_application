@@ -1,14 +1,15 @@
 <div class = "text-center m-4">
   <h1>メモを変更する</h1>
+  <%@result.each do |result|%></h1>
   <form action="/memos/<%= @id%>" method="post" >
     <div class = "m-4">
-      タイトル<input class = "form-control col-4 mx-auto" type="text" name="title" value = <%=@js["title"]%> placeholder=" ここ" required>
+      タイトル<input class = "form-control col-4 mx-auto" type="text" name="title" value = <%= result["memo_title"]%> placeholder=" ここ" required>
     </div>
     <div class = "m-4">
-      本文<textarea class = "form-control col-4 mx-auto" name="message" rows="5" ><%=@js["body"]%></textarea>
+      本文<textarea class = "form-control col-4 mx-auto" name="body" rows="5" ><%= result["memo_body"]%></textarea>
     </div>
     <input type="hidden" name="_method" value="patch">
     <input class = "btn btn-primary m-4" type="submit" value="変更する">
   </form>
+  <%end%>
 </div>
-
