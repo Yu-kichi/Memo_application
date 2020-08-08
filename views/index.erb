@@ -12,11 +12,11 @@
     </tr>
   </thead>
     <tbody>
-    <% @results.each do |result|%>
+    <% @memos.each do |memo|%>
     <tr>
-      <td><a href="/memos/<%= result['memo_id'] %>"><%= result['memo_title'] %></td>
-      <td><%= convert_to_br(result['memo_body']) %></td>
-      <td><%= result['updated_at'] %></td>
+      <td><a href="/memos/<%= memo['memo_id'] %>"><%= memo['memo_title'] %></td>
+      <td><%= convert_to_br(memo['memo_body']) %></td>
+      <td><%= memo['updated_at'] %></td>
       <br>
     </tr>
     <% end %> 
