@@ -78,8 +78,12 @@ end
 
 get '/memos/:id' do |id|
   @id = id
-  @result = MemoDatebaseQuery.find_by_id(@id)
-  @result.ntuples.positive? ? erb(:memo_show) : pass
+  memo = MemoDatebaseQuery.find_by_id(@id)&.first
+  pass if memo.nil?
+  @memo_title = memo['memo_title']
+  @memo_body = memo['memo_body']
+  @memo_updated_at = memo['updated_at']
+  erb(:memo_show)
 end
 
 post '/memos' do
@@ -89,18 +93,19 @@ end
 
 get '/memos/:id/edit' do |id|
   @id = id
-  @result = MemoDatebaseQuery.find_by_id(@id)
-  @result.ntuples.positive? ? erb(:memo_edit) : pass
+  memo = MemoDatebaseQuery.find_by_id(@id)&.first
+  pass if memo.nil?
+  @memo_title = memo['memo_title']
+  @memo_body = memo['memo_body']
+  erb(:memo_edit)
 end
 
 patch '/memos/:id' do |id|
-  @id = id
-  MemoDatebaseQuery.update(params[:title], params[:body], @id)
+  MemoDatebaseQuery.update(params[:title], params[:body], id)
   redirect '/memos'
 end
 
 delete '/memos/:id' do |id|
-  @id = id
-  MemoDatebaseQuery.delete(@id)
+  MemoDatebaseQuery.delete(id)
   redirect '/memos'
 end
