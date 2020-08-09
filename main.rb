@@ -2,21 +2,64 @@
 
 require 'sinatra'
 require 'sinatra/reloader'
-require 'json'
-require 'securerandom'
+require 'pg'
+require 'dotenv'
 
-# ファイルの読み込みと書き込み
-class MemoFile
-  def self.open_json
-    open('views/sample.json') do |io|
-      JSON.load(io)
+Dotenv.load
+
+class MemoDatebase
+  def self.open
+    settings = { dbname: ENV['DB_NAME'], user: ENV['LOGIN_NAME'], password: ENV['LOGIN_PASSWORD'] }
+    conn = PG.connect(settings)
+    yield conn
+  rescue PG::Error => e
+    puts e.message
+  ensure
+    conn&.close
+  end
+end
+
+class MemoDatebaseQuery
+  def self.find_all
+    MemoDatebase.open do |conn|
+      conn.exec('SELECT * FROM memo ORDER BY updated_at DESC')
     end
   end
 
-  def self.save_json(json_data)
-    open('views/sample.json', 'w') do |io|
-      JSON.dump(json_data, io)
+  def self.find_by_id(id)
+    MemoDatebase.open do |conn|
+      conn.prepare('find', 'SELECT * FROM memo WHERE memo_id=$1;')
+      conn.exec_prepared('find', [id])
     end
+  end
+
+  def self.create(title, body)
+    time = Time.now
+    MemoDatebase.open do |conn|
+      conn.prepare('new', 'INSERT INTO memo (memo_id,memo_title,memo_body,created_at,updated_at)values (DEFAULT, $1, $2, $3, $4)')
+      conn.exec_prepared('new', [title, body, time, time])
+    end
+  end
+
+  def self.update(title, body, id)
+    time = Time.now
+    MemoDatebase.open do |conn|
+      conn.prepare('update', 'UPDATE memo SET memo_title = $1, memo_body = $2, updated_at = $3 WHERE memo_id = $4;')
+      conn.exec_prepared('update', [title, body, time, id])
+    end
+  end
+
+  def self.delete(id)
+    MemoDatebase.open do |conn|
+      conn.prepare('delete', 'DELETE FROM memo WHERE memo_id = $1;')
+      conn.exec_prepared('delete', [id])
+    end
+  end
+end
+
+helpers do
+  def convert_to_br(body)
+    body.gsub(/\r\n|\n|\r/, '<br>')
   end
 end
 
@@ -25,9 +68,7 @@ get '/' do
 end
 
 get '/memos' do
-  @title = 'トップページ'
-  @date = Date.today
-  @json_data = MemoFile.open_json
+  @memos = MemoDatebaseQuery.find_all
   erb :index
 end
 
@@ -37,72 +78,29 @@ end
 
 get '/memos/:id' do |id|
   @id = id
-  json_data = MemoFile.open_json
-
-  json_data['memo'].each do |key|
-    @data ||= key[@id]
-  end
-
-  erb :memo_show
+  @memo = MemoDatebaseQuery.find_by_id(@id)&.first
+  pass if @memo.nil?
+  erb(:memo_show)
 end
 
 post '/memos' do
-  @title = params[:title]
-  @body = params[:body]
-  @date = Date.today
-  json_data = MemoFile.open_json
-  id = SecureRandom.uuid
-
-  add_data = { id => { title: @title, body: @body, date: @date } }
-  json_data['memo'].push(add_data)
-
-  MemoFile.save_json(json_data)
+  MemoDatebaseQuery.create(params[:title], params[:body])
   redirect '/memos'
 end
 
 get '/memos/:id/edit' do |id|
   @id = id
-  @json_data = MemoFile.open_json
-
-  @json_data['memo'].each do |key|
-    @js ||= key[@id]
-  end
-
-  erb :memo_edit
+  @memo = MemoDatebaseQuery.find_by_id(@id)&.first
+  pass if @memo.nil?
+  erb(:memo_edit)
 end
 
 patch '/memos/:id' do |id|
-  @id = id
-  @title = params[:title]
-  @message = params[:message]
-  @date = Date.today
-  json_data = MemoFile.open_json
-  edit_data = { @id => { title: @title, body: @message, date: @date } }
-
-  json_data['memo'].each do |data|
-    data.each do |key, _value| # ここのvalueはないとエラーになる
-      next unless key == @id.to_s
-
-      data.merge!(edit_data) do |_key, _old_value, new_value|
-        new_value
-      end
-    end
-  end
-
-  MemoFile.save_json(json_data)
-
+  MemoDatebaseQuery.update(params[:title], params[:body], id)
   redirect '/memos'
 end
 
 delete '/memos/:id' do |id|
-  @id = id
-  json_data = MemoFile.open_json
-
-  json_data['memo'] = json_data['memo'].each do |n|
-    n.delete_if { |key| key == @id }
-  end
-
-  MemoFile.save_json(json_data)
-
+  MemoDatebaseQuery.delete(id)
   redirect '/memos'
 end

@@ -8,20 +8,18 @@
     <tr>
       <th>タイトル</th>
       <th>内容</th>
-      <th>作成日</th>
+      <th>更新日時</th>
     </tr>
   </thead>
     <tbody>
-      <% @json_data["memo"].each do |data| %>
-      <% data.each do |key,value|%>
-      <tr>
-        <td><a href="/memos/<%= key %>"><%= value["title"] %></a></td>
-        <td><%= value["body"]%></td>
-        <td><%= value["date"]%></td>
-        <br>
-      </tr>  
-      <% end %>
-      <% end %>
+    <% @memos.each do |memo|%>
+    <tr>
+      <td><a href="/memos/<%= memo['memo_id'] %>"><%= memo['memo_title'] %></td>
+      <td><%= convert_to_br(memo['memo_body']) %></td>
+      <td><%= memo['updated_at'] %></td>
+      <br>
+    </tr>
+    <% end %> 
     </tbody>
   </table>
 </div>
