@@ -2,10 +2,10 @@
   <h1>メモを変更する</h1>
   <form action="/memos/<%= @id%>" method="post" >
     <div class = "m-4">
-      タイトル<input class = "form-control col-4 mx-auto" type="text" name="title" value = <%= @memo_title%> placeholder=" タイトルは必須です" required>
+      タイトル<input class = "form-control col-4 mx-auto" type="text" name="title" value = <%= @memo['memo_title']%> placeholder=" タイトルは必須です" required>
     </div>
     <div class = "m-4">
-      本文<textarea class = "form-control col-4 mx-auto" name="body" rows="5" ><%= @memo_body%></textarea>
+      本文<textarea class = "form-control col-4 mx-auto" name="body" rows="5" ><%= @memo['memo_body']%></textarea>
     </div>
     <input type="hidden" name="_method" value="patch">
     <input class = "btn btn-primary m-4" type="submit" value="変更する">

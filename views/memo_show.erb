@@ -1,7 +1,7 @@
 <div class = "text-center m-4">
-  <h2 class = "m-4">タイトル: <%=@memo_title%></h2>
-  <h2 class = "m-4">内容: <%=convert_to_br(@memo_body)%></h2> 
-  <h2 class = "m-4">更新日時: <%=@memo_updated_at %></h2> 
+  <h2 class = "m-4">タイトル: <%=@memo['memo_title']%></h2>
+  <h2 class = "m-4">内容: <%=convert_to_br(@memo['memo_body'])%></h2> 
+  <h2 class = "m-4">更新日時: <%=@memo['updated_at'] %></h2> 
   <p><a class = "btn btn-primary m-4 px-1" href="/memos/<%= @id%>/edit">メモを変更する</a> </p>
   <form action="/memos/<%=@id %>" method="post" >
     <input type="hidden" name="_method" value="delete">

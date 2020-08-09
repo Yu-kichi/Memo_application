@@ -78,11 +78,8 @@ end
 
 get '/memos/:id' do |id|
   @id = id
-  memo = MemoDatebaseQuery.find_by_id(@id)&.first
-  pass if memo.nil?
-  @memo_title = memo['memo_title']
-  @memo_body = memo['memo_body']
-  @memo_updated_at = memo['updated_at']
+  @memo = MemoDatebaseQuery.find_by_id(@id)&.first
+  pass if @memo.nil?
   erb(:memo_show)
 end
 
@@ -93,10 +90,8 @@ end
 
 get '/memos/:id/edit' do |id|
   @id = id
-  memo = MemoDatebaseQuery.find_by_id(@id)&.first
-  pass if memo.nil?
-  @memo_title = memo['memo_title']
-  @memo_body = memo['memo_body']
+  @memo = MemoDatebaseQuery.find_by_id(@id)&.first
+  pass if @memo.nil?
   erb(:memo_edit)
 end
 
